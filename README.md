@@ -203,3 +203,31 @@ cargo run --release --bin tls-client-auth-server
 curl localhost:20000/tls
 ok
 ```
+
+## Benchmark
+
+### ffi overhead
+
+The most important question is, since we wrap the tonic, so how much is the overhead?
+
+I use AWS EC2 t2.medium (Ubuntu 22.04) to do the benchmark.
+
+![grpc client benchmark, overhead](grpc_client_benchmark.png)
+
+Send 100,000 calls, use lua-resty-ffi and tonic helloworld client example respectively.
+
+The result is in seconds, lower is better.
+
+You could see that the overhead is 20% to 30%, depending the CPU affinity. No too bad, right?
+
+### [grpc-client-nginx-module?](https://github.com/api7/grpc-client-nginx-module)
+
+![grpc client benchmark](grpc_client_benchmark2.png)
+
+**lower is better**.
+
+`affinity` means CPU affinity of client program set by `taskset`:
+
+* `affinity 0,1`: bound to both CPU-0 and CPU-1
+* `affinity 1`: bound to CPU-1, then client and server runs in seperate CPU exclusively
+* `affinity 0`: client and server runs in the same CPU-0
