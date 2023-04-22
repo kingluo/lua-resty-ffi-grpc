@@ -185,7 +185,21 @@ mkdir logs
 LD_LIBRARY_PATH=/opt/lua-resty-ffi-grpc/grpc_client/target/release:/usr/local/lib/lua/5.1 \
 nginx -p $PWD -c nginx.conf
 
+# run tonic helloworld-server
+cd /opt
+git clone https://github.com/hyperium/tonic
+cd /opt/tonic
+cargo run --release --bin helloworld-server
+
 # hello world
 curl localhost:20000/say_hello
+ok
+
+# run tonic tls-client-auth-server
+cd /opt/tonic
+cargo run --release --bin tls-client-auth-server
+
+# mtls
+curl localhost:20000/tls
 ok
 ```
