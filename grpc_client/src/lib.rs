@@ -134,6 +134,16 @@ impl Decoder for MyCodec {
     }
 }
 
+fn respond_error(err: &dyn std::error::Error, task: &TaskHandle) {
+    unsafe {
+        let desc = err.source().unwrap().to_string();
+        let res = libc::malloc(desc.len());
+        libc::memcpy(res, desc.as_ptr() as *const c_void, desc.len());
+        let len = desc.len();
+        ngx_http_lua_ffi_respond(task.0, 1, res as *mut c_char, len as i32);
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn libffi_init(_cfg: *mut c_char, tq: *const c_void) -> c_int {
     let tq = TaskQueueHandle(tq);
@@ -195,17 +205,26 @@ pub extern "C" fn libffi_init(_cfg: *mut c_char, tq: *const c_void) -> c_int {
                                     .tls_config(tls)
                                     .unwrap()
                                     .connect()
-                                    .await
-                                    .unwrap();
+                                    .await;
 
-                                tonic::client::Grpc::new(channel)
+                                if let Err(err) = &channel {
+                                    respond_error(err, &task);
+                                    return;
+                                }
+
+                                tonic::client::Grpc::new(channel.unwrap())
                             } else {
                                 let ep = tonic::transport::Endpoint::new(cmd.key)
                                     .unwrap()
                                     .connect()
-                                    .await
-                                    .unwrap();
-                                tonic::client::Grpc::new(ep)
+                                    .await;
+
+                                if let Err(err) = &ep {
+                                    respond_error(err, &task);
+                                    return;
+                                }
+
+                                tonic::client::Grpc::new(ep.unwrap())
                             };
 
                             let id = format!("cli-{}", obj_cnt.fetch_add(1, Ordering::SeqCst));

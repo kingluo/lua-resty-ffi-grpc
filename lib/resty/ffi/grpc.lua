@@ -174,8 +174,8 @@ function _M.connect(uri, opts)
         cert = opts.cert,
         priv_key = opts.priv_key,
     }
-    local ok, conn = grpc:connect(cjson.encode(cmd))
-    return ok, ok and setmt__gc({conn = conn, closed = false}, meta) or nil
+    local ok, conn, err = grpc:connect(cjson.encode(cmd))
+    return ok, ok and setmt__gc({conn = conn, closed = false}, meta) or conn, err
 end
 
 function _M.readfile(file)
