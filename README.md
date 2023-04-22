@@ -220,7 +220,7 @@ The result is in seconds, lower is better.
 
 You could see that the overhead is 20% to 30%, depending the CPU affinity. No too bad, right?
 
-### [grpc-client-nginx-module?](https://github.com/api7/grpc-client-nginx-module)
+### How about [grpc-client-nginx-module](https://github.com/api7/grpc-client-nginx-module)?
 
 ![grpc client benchmark](grpc_client_benchmark2.png)
 
@@ -231,3 +231,5 @@ You could see that the overhead is 20% to 30%, depending the CPU affinity. No to
 * `affinity 0,1`: bound to both CPU-0 and CPU-1
 * `affinity 1`: bound to CPU-1, then client and server runs in seperate CPU exclusively
 * `affinity 0`: client and server runs in the same CPU-0
+
+Thanks to the [high efficient IPC design](https://github.com/kingluo/lua-resty-ffi/blob/main/benchmark.md), lua-resty-ffi-grpc is the better. In fact, grpc-go and tonic are almost the same performance, so the only difference is the overhead of encapsulation.
